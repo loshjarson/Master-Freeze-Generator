@@ -1,5 +1,6 @@
 const {app,BrowserWindow} = require('electron')
 const isDev = require('electron-is-dev')
+require('dotenv').config({path: __dirname + '/.env'})
 
 require('@electron/remote/main').initialize()
 
