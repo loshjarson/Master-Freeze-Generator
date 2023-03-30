@@ -23,8 +23,14 @@ function App() {
           uploading[file.name] = file.objectURL
         });
         setFiles({...files,...uploading})
+        handleExcelCreation({...files,...uploading})
         toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
     };
+
+    const handleExcelCreation = (files) => {
+      
+    }
+
 
     const handleRemove = (file, callback) => {
         const toUpdate = files;
