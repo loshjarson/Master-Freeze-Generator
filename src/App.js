@@ -6,6 +6,94 @@ import { Tooltip } from 'primereact/tooltip';
 import { Tag } from 'primereact/tag';
 import { PDFDocument } from 'pdf-lib'
 
+//template object to order field value object before excel creation
+
+const templateObject = {
+    "SBS ID":null,
+    "NAME":null,
+    "DATE":null,
+    "TECHNICIAN":null,
+    "FREEZE PROC": null,
+    "CENT EXT": null,
+    "CENT LOT #": null,
+    "CENT DATE": null,
+    "FRZ EXT": null,
+    "FRZ EXT LOT #": null,
+    "FRZ EXT DATE": null,
+    "ANTIBIOTIC 1": null,
+    "ANTIBIOTIC 1 LEVEL": null,
+    "ANTIBIOTIC 2": null,
+    "ANTIBIOTIC 2 LEVEL": null,
+    "COLL. TIME": null,
+    "MOUNTS": null,
+    "COLLECTOR": null,
+    "P/M": null,
+    "AV TYPE": null,
+    "LINER L/D": null,
+    "ROOM TEMP": null,
+    "DAYS SEX REST": null,
+    "G-F VOL": null,
+    "G-VOL": null,
+    "CONC X106": null,
+    "TS X109": null,
+    "SEMCOM": null,
+    "I TOTMOT": null,
+    "I PMOT": null,
+    "I VAP": null,
+    "I VCL": null,
+    "I VSL": null,
+    "I ALH": null,
+    "I BCF": null,
+    "I STR": null,
+    "I LIN": null,
+    "PC TOTMOT": null,
+    "PC PMOT": null,
+    "PC VAP": null,
+    "PC VCL": null,
+    "PC VSL": null,
+    "PC ALH": null,
+    "PC BCF": null,
+    "PC STR": null,
+    "PC LIN": null,
+    "PT TOTMOT": null,
+    "PT PMOT": null,
+    "PT VAP": null,
+    "PT VCL": null,
+    "PT VSL": null,
+    "PT ALH": null,
+    "PT BCF": null,
+    "PT STR": null,
+    "PT LIN": null,
+    "MOT COM": null,
+    "%RECTOT": null,
+    "%RECPMOT": null,
+    "%RECVAP": null,
+    "%RECVAP": null,
+    "%RECVCL": null,
+    "%RECVSL": null,
+    "%RECALH": null,
+    "%RECBCF": null,
+    "%RECSTR": null,
+    "%RECLIN": null,
+    "PROC VOL": null,
+    "DIL 1 VOL": null,
+    "RESUS VOL": null,
+    "CALC CONC": null,
+    "FINAL VOL": null,
+    "FINAL CONC": null,
+    "TS/DOSE": null,
+    "TPMS/DOSE PT": null,
+    "STRAW SIZE": null,
+    "DOSE VOL": null,
+    "#STRAWS/DOSE": null,
+    "#STRAWS": null,
+    "#DOSES": null,
+    "COLOR CODE": null,
+    "LOT #": null,
+    "TIME IN FREEZER": null
+}
+
+
 function App() {
     const toast = useRef(null);
     const fileUploadRef = useRef(null);
@@ -33,7 +121,7 @@ function App() {
     const handlePDFFormValues = async (files) => {
         const toExcelContents = []
         Object.keys(files).forEach(async (file) => {
-            const fileValues = {}
+            let fileValues = {}
             const arrayBuffer = await fetch(files[file]).then(res => res.arrayBuffer())
             const pdfDoc = await PDFDocument.load(arrayBuffer);
             const form = pdfDoc.getForm();
@@ -44,9 +132,9 @@ function App() {
                 const textField = form.getTextField(field)
                 fileValues[fieldName] = textField.getText()
             })
+            fileValues = Object.apply(templateObject,fileValues)
             toExcelContents.push(fileValues)
         })
-
     }
 
 
