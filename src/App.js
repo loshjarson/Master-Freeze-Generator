@@ -4,6 +4,7 @@ import { FileUpload } from 'primereact/fileupload';
 import { Button } from 'primereact/button';
 import { Tooltip } from 'primereact/tooltip';
 import { Tag } from 'primereact/tag';
+import { PDFDocument } from 'pdf-lib'
 
 function App() {
     const toast = useRef(null);
@@ -17,18 +18,35 @@ function App() {
         });
     };
 
+    //custom handle for "uploading"
     const onTemplateUpload = (e) => {
         const uploading = {}
         e.files.forEach((file) => {
-          uploading[file.name] = file.objectURL
+          uploading[file.name] = file.objectURL.slice(5)
         });
         setFiles({...files,...uploading})
-        handleExcelCreation({...files,...uploading})
+        handlePDFFormValues({...files,...uploading})
         toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
     };
 
-    const handleExcelCreation = (files) => {
-      
+    //grab forms and their field values. then send values to excel creator
+    const handlePDFFormValues = async (files) => {
+        const toExcelContents = []
+        Object.keys(files).forEach(async (file) => {
+            const fileValues = {}
+            const arrayBuffer = await fetch(files[file]).then(res => res.arrayBuffer())
+            const pdfDoc = await PDFDocument.load(arrayBuffer);
+            const form = pdfDoc.getForm();
+
+            const formFields = form.getFields()
+            formFields.forEach(field => {
+                const fieldName = field.getName()
+                const textField = form.getTextField(field)
+                fileValues[fieldName] = textField.getText()
+            })
+            toExcelContents.push(fileValues)
+        })
+
     }
 
 
