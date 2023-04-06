@@ -10,7 +10,6 @@
     "concurrently": "^8.0.1",
     "cross-env": "^7.0.3",
     "dotenv": "^16.0.3",
-    "electron": "^23.2.1",
     "electron-is-dev": "^2.0.0",
     "fs": "^0.0.1-security",
     "node-sass": "^7.0.3",
@@ -38,6 +37,21 @@
     "electron:serve": "concurrently \"cross-env npm start\" \"npm run electron:start\"",
     "electron:build": "npm run build && electron-builder -c.extraMetadata.main=build/main.js"
   },
+  "build": {
+    "extends": null,
+    "appId": "Master Freeze Generator",
+    "productName": "Master Freeze Generator",
+    "files": [
+      "dist/**/*",
+      "build/**/*",
+      "node_modules/**/*",
+      "package.json"
+    ],
+    "icon": "sbs logo",
+    "directories": {
+      "buildResources": "assets"
+    }
+  },
   "eslintConfig": {
     "extends": [
       "react-app",
@@ -55,5 +69,10 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "electron": "^23.2.1",
+    "electron-builder": "^23.6.0",
+    "electron-rebuild": "^3.2.9"
   }
 }
