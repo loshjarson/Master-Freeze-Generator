@@ -84,7 +84,7 @@ const templateObject = {
     "CALC CONC": null,
     "FINAL VOL": null,
     "FINAL CONC": null,
-    "TS/DOSE": null,
+    "TS/DOSE X106": null,
     "TPMS/DOSE PT": null,
     "STRAW SIZE": null,
     "DOSE VOL": null,
@@ -110,7 +110,7 @@ const templateObject = {
     "LOC 2 TOP/BOTTOM": null,
     "STORAGE LOCATION 3": null,
     "LOC 3 NO STRAWS": null,
-    "LOC 3 NO DOSES": null,
+    "LOC 3 NO. DOSES": null,
     "LOC 3 TANK": null,
     "LOC 3 CANISTER": null,
     "LOC 3 PIE": null,
@@ -191,7 +191,7 @@ function App() {
             const formFields = form.getFields()
             formFields.forEach(field => {
                 const fieldName = field.getName()
-                if(templateObject[fieldName]){
+                if(fieldName in templateObject){
                     const textField = form.getTextField(fieldName)
                     fileValues.set(fieldName,textField.getText())
                 }
