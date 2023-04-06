@@ -1,6 +1,8 @@
-const {app,BrowserWindow} = require('electron')
+const {app,BrowserWindow, ipcMain} = require('electron')
 const isDev = require('electron-is-dev')
 require('dotenv').config({path: __dirname + '/.env'})
+const path = require("path")
+const fs = require("fs")
 
 require('@electron/remote/main').initialize()
 
@@ -46,5 +48,9 @@ if(!gotTheLock){
           if(process.platform !== 'darwin'){
               app.quit()
           }
+      })
+
+      ipcMain.handle("path-to-buffer", async(event, ...args) => {
+        return fs.readFileSync(args[0])
       })
 }

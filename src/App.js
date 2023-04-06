@@ -5,6 +5,10 @@ import { Button } from 'primereact/button';
 import { Tooltip } from 'primereact/tooltip';
 import { Tag } from 'primereact/tag';
 import { PDFDocument } from 'pdf-lib'
+import {utils, writeFile} from 'xlsx'
+
+const ipcRenderer = window.require("electron").ipcRenderer;
+
 
 //template object to order field value object before excel creation
 
@@ -68,7 +72,6 @@ const templateObject = {
     "%RECTOT": null,
     "%RECPMOT": null,
     "%RECVAP": null,
-    "%RECVAP": null,
     "%RECVCL": null,
     "%RECVSL": null,
     "%RECALH": null,
@@ -90,63 +93,131 @@ const templateObject = {
     "#DOSES": null,
     "COLOR CODE": null,
     "LOT #": null,
-    "TIME IN FREEZER": null
+    "TIME IN FREEZER": null,
+    "STORAGE LOCATION 1": null,
+    "NO STRAWS": null,
+    "NO. DOSES": null,
+    "TANK": null,
+    "CANISTER": null,
+    "PIE": null,
+    "TOP/BOTTOM": null,
+    "STORAGE LOCATION 2": null,
+    "LOC 2 NO STRAWS": null,
+    "LOC 2 NO. DOSES": null,
+    "LOC 2 TANK": null,
+    "LOC 2 CANISTER": null,
+    "LOC 2 PIE": null,
+    "LOC 2 TOP/BOTTOM": null,
+    "STORAGE LOCATION 3": null,
+    "LOC 3 NO STRAWS": null,
+    "LOC 3 NO DOSES": null,
+    "LOC 3 TANK": null,
+    "LOC 3 CANISTER": null,
+    "LOC 3 PIE": null,
+    "LOC 3 TOP/BOTTOM": null,
+    "EVA +/-": null,
+    "CULTURE": null,
+    "MORPHOLOGY": null,
+    "EXPORT QUAL": null,
+    "EU": null,
+    "A": null,
+    "NZ": null,
+    "OTHER": null
 }
+
+const checkVals = ['STALLION OWNER', 'FACILITY', 'AGE','CONC DENS','TOTAL SPERM', 'CONC NC', "BREED", "REGISTRATION"]
 
 
 function App() {
     const toast = useRef(null);
     const fileUploadRef = useRef(null);
     const [files, setFiles] = useState({})
+    const [toUpload, setToUpload] = useState([Object.keys(templateObject)])
     
-    const onTemplateSelect = (e) => {
+    const onTemplateSelect = async (e) => {
         let files = e.files;
-
         Object.keys(files).forEach((key) => {
+
         });
     };
 
     //custom handle for "uploading"
     const onTemplateUpload = (e) => {
         const uploading = {}
+        
         e.files.forEach((file) => {
-          uploading[file.name] = file.objectURL.slice(5)
+            console.log(file)
+          uploading[file.name] = file.path
         });
         setFiles({...files,...uploading})
         handlePDFFormValues({...files,...uploading})
         toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
     };
 
+
     //grab forms and their field values. then send values to excel creator
     const handlePDFFormValues = async (files) => {
-        const toExcelContents = []
-        Object.keys(files).forEach(async (file) => {
-            let fileValues = {}
-            const arrayBuffer = await fetch(files[file]).then(res => res.arrayBuffer())
+        let toExcelContents = toUpload
+        Object.keys(files).forEach(async (file, i) => {
+            console.log("running")
+            const container = []
+            const fileValues = new Map(Object.entries(templateObject))
+            const arrayBuffer = await ipcRenderer.invoke("path-to-buffer", files[file])
             const pdfDoc = await PDFDocument.load(arrayBuffer);
             const form = pdfDoc.getForm();
 
             const formFields = form.getFields()
             formFields.forEach(field => {
                 const fieldName = field.getName()
-                const textField = form.getTextField(field)
-                fileValues[fieldName] = textField.getText()
+                if(!(checkVals.includes(fieldName))){
+                    const textField = form.getTextField(fieldName)
+                    fileValues.set(fieldName,textField.getText())
+                }
             })
-            fileValues = Object.apply(templateObject,fileValues)
-            toExcelContents.push(fileValues)
-        })
+
+            let escape = false;
+            const iterator = fileValues.values()
+            while(!escape){
+                const target = iterator.next()
+                if(target.done){
+                    escape = true
+                } else {
+                    container.push(target.value)
+                }
+            }
+            console.log(container)
+            toExcelContents.push(container)   
+            if(Object.keys(files).length === i+1){
+                handleXLSXCreation(toExcelContents)
+            }             
+        })     
     }
 
+
+
+    const handleXLSXCreation = (x) => {
+        console.log(toUpload)
+        const worksheet = utils.aoa_to_sheet(x, {origin: "A1"});
+        console.log(toUpload)
+        const workbook = utils.book_new();
+        utils.book_append_sheet(workbook, worksheet, "Freeze Sheets");
+        // const max_width = toUpload[0].reduce((w, r) => Math.max(w, r.length), 20);
+        // worksheet["!cols"] = [ { wch: max_width } ];
+        writeFile(workbook, "Master Freeze Sheet.xlsx", { compression: true });
+        setToUpload([Object.keys(templateObject)])
+    }
 
     const handleRemove = (file, callback) => {
         const toUpdate = files;
         delete toUpdate[file.name]
         setFiles(toUpdate)
+        setToUpload([Object.keys(templateObject)])
         callback()
     };
 
     const handleCancel = () => {
       setFiles({})
+      setToUpload([Object.keys(templateObject)])
     }
 
     const headerTemplate = (options) => {
@@ -164,8 +235,7 @@ function App() {
     const itemTemplate = (file, props) => {
         return (
             <div className="flex align-items-center flex-wrap">
-                <div className="flex align-items-center" style={{ width: '40%' }}>
-                    <img alt={file.name} role="presentation" src={file.objectURL} width={100} />
+                <div className="flex align-items-center" style={{ width: '60%' }}>
                     <span className="flex flex-column text-left ml-3">
                         {file.name}
                         <small>{new Date().toLocaleDateString()}</small>
