@@ -125,8 +125,6 @@ const templateObject = {
     "OTHER": null
 }
 
-const checkVals = ['STALLION OWNER', 'FACILITY', 'AGE','CONC DENS','TOTAL SPERM', 'CONC NC', "BREED", "REGISTRATION"]
-
 
 function App() {
     const toast = useRef(null);
@@ -154,6 +152,30 @@ function App() {
         toast.current.show({ severity: 'info', summary: 'Success', detail: 'File Uploaded' });
     };
 
+    const formulate = (map, i) => {
+        const rowNum = i+2;
+        const toMap = {
+            "%RECTOT": `AY${rowNum}/AG${rowNum}`,
+            "%RECPMOT": `AZ${rowNum}/AH${rowNum}`,
+            "%RECVAP": `BA${rowNum}/AI${rowNum}`,
+            "%RECVCL": `BB${rowNum}/AJ${rowNum}`,
+            "%RECVSL": `BC${rowNum}/AK${rowNum}`,
+            "%RECALH": `BD${rowNum}/AL${rowNum}`,
+            "%RECBCF": `BE${rowNum}/AM${rowNum}`,
+            "%RECSTR": `BF${rowNum}/AN${rowNum}`,
+            "%RECLIN": `BG${rowNum}/AO${rowNum}`,
+            "RESUS VOL": `BR${rowNum}*AD${rowNum}*0.8/BU${rowNum}`,
+            "NO. DOSES": `CC${rowNum}/CB${rowNum}`,
+            "LOC 2 NO. DOSES": `CI${rowNum}/CB${rowNum}`,
+            "LOC 3 NO. DOSES": `CW${rowNum}/CB${rowNum}`,
+        }
+        Object.keys(toMap).forEach(field => {
+            map.set(field,{f:toMap[field]})
+        })
+        console.log(map)
+        return map
+    }
+
 
     //grab forms and their field values. then send values to excel creator
     const handlePDFFormValues = async (files) => {
@@ -169,14 +191,15 @@ function App() {
             const formFields = form.getFields()
             formFields.forEach(field => {
                 const fieldName = field.getName()
-                if(!(checkVals.includes(fieldName))){
+                if(templateObject[fieldName]){
                     const textField = form.getTextField(fieldName)
                     fileValues.set(fieldName,textField.getText())
                 }
             })
 
+            const formulatedFileValues = formulate(fileValues, i)
             let escape = false;
-            const iterator = fileValues.values()
+            const iterator = formulatedFileValues.values()
             while(!escape){
                 const target = iterator.next()
                 if(target.done){
@@ -201,9 +224,7 @@ function App() {
         console.log(toUpload)
         const workbook = utils.book_new();
         utils.book_append_sheet(workbook, worksheet, "Freeze Sheets");
-        // const max_width = toUpload[0].reduce((w, r) => Math.max(w, r.length), 20);
-        // worksheet["!cols"] = [ { wch: max_width } ];
-        writeFile(workbook, "Master Freeze Sheet.xlsx", { compression: true });
+        writeFile(workbook, "Master Freeze Sheet.xlsx", { compression: true, cellFormula: true });
         setToUpload([Object.keys(templateObject)])
     }
 
