@@ -132,13 +132,6 @@ function App() {
     const [files, setFiles] = useState({})
     const [toUpload, setToUpload] = useState([Object.keys(templateObject)])
     
-    const onTemplateSelect = async (e) => {
-        let files = e.files;
-        Object.keys(files).forEach((key) => {
-
-        });
-    };
-
     //custom handle for "uploading"
     const onTemplateUpload = (e) => {
         const uploading = {}
@@ -168,6 +161,9 @@ function App() {
             "NO. DOSES": `CC${rowNum}/CB${rowNum}`,
             "LOC 2 NO. DOSES": `CI${rowNum}/CB${rowNum}`,
             "LOC 3 NO. DOSES": `CW${rowNum}/CB${rowNum}`,
+            "TS X109":`AB${rowNum}*AD${rowNum}/1000`,
+            "TS/DOSE X106":`BW${rowNum}*CA${rowNum}`,
+            "TPMS/DOSE PT":`BX${rowNum}*AZ${rowNum}/1000`
         }
         Object.keys(toMap).forEach(field => {
             map.set(field,{f:toMap[field]})
@@ -181,7 +177,6 @@ function App() {
     const handlePDFFormValues = async (files) => {
         let toExcelContents = toUpload
         Object.keys(files).forEach(async (file, i) => {
-            console.log("running")
             const container = []
             const fileValues = new Map(Object.entries(templateObject))
             const arrayBuffer = await ipcRenderer.invoke("path-to-buffer", files[file])
@@ -291,7 +286,7 @@ function App() {
             <Tooltip target=".custom-upload-btn" content="Upload" position="bottom" />
             <Tooltip target=".custom-cancel-btn" content="Clear" position="bottom" />
 
-            <FileUpload ref={fileUploadRef} name="file-upload" multiple onSelect={onTemplateSelect} customUpload={true} uploadHandler={onTemplateUpload}
+            <FileUpload ref={fileUploadRef} name="file-upload" multiple customUpload={true} uploadHandler={onTemplateUpload}
                 headerTemplate={headerTemplate} itemTemplate={itemTemplate} emptyTemplate={emptyTemplate} onClear={handleCancel}
                 chooseOptions={chooseOptions} uploadOptions={uploadOptions} cancelOptions={cancelOptions} />
         </div>
